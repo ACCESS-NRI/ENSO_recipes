@@ -16,7 +16,7 @@ from esmvaltool.diag_scripts.shared import (run_diagnostic,
                                             get_diagnostic_filename,
                                             group_metadata,
                                             select_metadata)
-from esmvalcore.preprocessor import convert_units
+from esmvalcore.preprocessor import convert_units, zonal_statistics, meridional_statistics
 
 
 # This part sends debug statements to stdout
@@ -34,8 +34,14 @@ def plot_level1(input_data, cfg): #input data is 2 - model and obs
         logger.info(f"dataset: {dt} - {dataset['long_name']}")
     
         cube = iris.load_cube(fp) 
-        #convert units for different variables
+        #convert units for different variables 
         cube = convert_units(cube, units=var_units[sn])
+        # func for sea_cycle, 
+        title = f"Mean {dataset['long_name']}"
+        if len(cube.coords('month_number')) == 1:
+            cube = sea_cycle_month_stdev(cube, dataset['preprocessor'])
+            #plot title 
+            title = f"{dataset['long_name']} seasonal cycle"
 
         if proj == 'CMIP6':# group by models/ for each model with obs 
             qplt.plot(cube, label=dt)
@@ -52,7 +58,7 @@ def plot_level1(input_data, cfg): #input data is 2 - model and obs
         f.write(f"{filename[0]},{filename[1]},{rmse}\n")
 
 
-    plt.title(f"Mean {dataset['long_name']} ") #
+    plt.title(title) #
     plt.legend()
     plt.grid(linestyle='--')
     plt.ylabel(f"{sn.upper()} ({cube.units})")
@@ -70,8 +76,20 @@ def plot_level1(input_data, cfg): #input data is 2 - model and obs
     # save_figure('_'.join(filename), provenance_record, cfg, dpi=300)
     return figure, filename
 
-def rmse(obs_cube, model_cube): ##
-    return np.sqrt(np.mean((obs_cube.data - model_cube.data) ** 2))
+def sea_cycle_month_stdev(cube, preproc):
+
+    cube.coord('month_number').guess_bounds()
+    cube = cube.collapsed('month_number', iris.analysis.STD_DEV)
+    #ITCZ or zonal?
+    if preproc.startswith('ITCZ'):
+        cube = zonal_statistics(cube, 'mean')
+    else:
+        cube = meridional_statistics(cube, 'mean')
+
+    return cube
+
+# def rmse(obs_cube, model_cube): ##
+#     return np.sqrt(np.mean((obs_cube.data - model_cube.data) ** 2))
 
 def format_latitude(x, pos):
     if x < 0:
