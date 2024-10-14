@@ -14,9 +14,22 @@ from esmvaltool.diag_scripts.shared import (run_diagnostic,
 # This part sends debug statements to stdout
 logger = logging.getLogger(os.path.basename(__file__))
 
-def plot_matrix(input_data, cfg): #input data is 2 - model and obs
+def plot_matrix(diag_path):
 
-    return 
+    metric_df = pd.read_csv(diag_path, header=None)
+    transformls = []
+    for mod in metric_df[0].unique(): #iterate model, translate metrics
+        df = metric_df.loc[metric_df[0]==mod,:]
+        transformls.append(df[[1,2]].set_index(1).T.rename(index={2:mod}))
+
+    matrixdf = pd.concat(transformls) #normalise values?
+    figure = plt.figure(dpi=300)
+    plt.imshow(matrixdf, cmap='coolwarm')
+    plt.colorbar()
+    plt.xticks(range(len(matrixdf.columns)), matrixdf.columns, rotation=45, ha='right')
+    plt.yticks(range(len(matrixdf.index)), matrixdf.index, wrap=True)
+
+    return figure
 
 
 
@@ -36,18 +49,7 @@ def main(cfg):
     diag_path = '/'.join(diag_path, metrics, 'matrix.csv')
     logger.info(diag_path)
     
-    metric_df = pd.read_csv(diag_path, header=None)
-    transformls = []
-    for mod in metric_df[0].unique(): #iterate model, translate metrics
-        df = metric_df.loc[metric_df[0]==mod,:]
-        transformls.append(df[[1,2]].set_index(1).T.rename(index={2:mod}))
-
-    matrixdf = pd.concat(transformls)
-    figure = plt.figure(dpi=300)
-    plt.imshow(matrixdf, cmap='coolwarm')
-    plt.colorbar()
-    plt.xticks(range(len(matrixdf.columns)),matrixdf.columns)
-    plt.yticks(range(len(matrixdf.index)),matrixdf.index)
+    figure = plot_matrix(diag_path)
 
     save_figure('plot_matrix', provenance_record, cfg, figure=figure)
 
