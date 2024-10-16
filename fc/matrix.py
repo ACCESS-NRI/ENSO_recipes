@@ -17,12 +17,15 @@ logger = logging.getLogger(os.path.basename(__file__))
 def plot_matrix(diag_path):
 
     metric_df = pd.read_csv(diag_path, header=None)
+    # TO DO: run normalisation on all these values
+    metric_df[2] = (metric_df[2]-metric_df[2].mean())/metric_df[2].std()
+
     transformls = []
     for mod in metric_df[0].unique(): #iterate model, translate metrics
         df = metric_df.loc[metric_df[0]==mod,:]
         transformls.append(df[[1,2]].set_index(1).T.rename(index={2:mod}))
 
-    matrixdf = pd.concat(transformls) #normalise values?
+    matrixdf = pd.concat(transformls)
     figure = plt.figure(dpi=300)
     plt.imshow(matrixdf, cmap='coolwarm')
     plt.colorbar()
@@ -46,7 +49,7 @@ def main(cfg):
     # input_data = cfg['input_data'].values() 
     metrics = cfg['diag_metrics']
     diag_path = '/'.join(cfg['work_dir'].split('/')[:-2])
-    diag_path = '/'.join(diag_path, metrics, 'matrix.csv')
+    diag_path = '/'.join([diag_path, metrics, 'matrix.csv'])
     logger.info(diag_path)
     
     figure = plot_matrix(diag_path)
