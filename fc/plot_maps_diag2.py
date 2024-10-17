@@ -44,9 +44,9 @@ def plotmaps_level2(input_data): #input data is pairs - model and obs
             cbar_label = f'{sn.upper()} std'
         
         ax1 = plt.subplot(i,projection=proj)
-        ax1.add_feature(cfeature.LAND, facecolor='gray')  # Add land feature with gray color
+        ax1.add_feature(cfeature.LAND, facecolor='gray')  #
         ax1.coastlines()
-        cf1 = iplt.contourf(cube, cmap='coolwarm') # levels=np.arange(0,5,0.2),
+        cf1 = iplt.contourf(cube, cmap='coolwarm') # levels=np.arange(0,5,0.2), values set for variable
 
         ax1.set_extent([130, 290, -20, 20], crs=ccrs.PlateCarree())
         ax1.set_title(dt)

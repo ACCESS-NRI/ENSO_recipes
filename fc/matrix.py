@@ -44,7 +44,7 @@ def main(cfg):
             'chun_felicity',
         ],
         'references': [''],
-        'ancestors': list(cfg['input_data'].keys()),
+        'ancestors': cfg['diag_metrics']  #
     }
     # input_data = cfg['input_data'].values() 
     metrics = cfg['diag_metrics']

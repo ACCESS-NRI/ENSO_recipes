@@ -2,7 +2,7 @@
 # 
 ---
 documentation:
-  description: ENSO CLIVAR metrics by Yann Planton - test seasonal cycle metrics
+  description: ENSO CLIVAR metrics by Yann Planton - diagnostic level 2
   title: Reproducing ENSO CLIVAR metrics 
   authors:
     - chun_felicity
