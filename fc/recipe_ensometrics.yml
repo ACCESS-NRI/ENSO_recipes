@@ -1,0 +1,134 @@
+# ESMValTool
+# 
+---
+documentation:
+  description: ENSO CLIVAR metrics 
+  title: Reproducing ENSO CLIVAR metrics by Yann Planton
+  authors:
+    - chun_felicity
+  maintainer:
+    - chun_felicity
+
+datasets:
+  - {dataset: ACCESS-ESM1-5, project: CMIP6, exp: historical, ensemble: r1i1p1f1, grid: gn, start_year: 1850, end_year: 2014}
+  - {dataset: ACCESS-CM2, project: CMIP6, exp: historical, ensemble: r1i1p1f1, grid: gn, start_year: 1850, end_year: 2014}
+  - {dataset: BCC-CSM2-MR, project: CMIP6, exp: historical, ensemble: r1i1p1f1, grid: gn, start_year: 1850, end_year: 2014}
+  - {dataset: BCC-ESM1, project: CMIP6, exp: historical, ensemble: r1i1p1f1, grid: gn, start_year: 1850, end_year: 2014}
+  
+preprocessors:
+  base_bias: &base_bias
+    custom_order: true
+    # mask_landsea:
+    #   mask_out: land # search for supplementary sftlf, sftof
+    climate_statistics:
+      operator: mean
+      period: full
+    regrid:
+      target_grid: 1x1
+      scheme: linear
+    extract_region: &double
+      start_longitude: 210.
+      end_longitude: 270.
+      start_latitude: -15.
+      end_latitude: 15.
+
+  ITCZ_bias:
+    <<: *base_bias
+    convert_units: # for variable, in script dict
+      units: mm/day
+    zonal_statistics:
+      operator: mean
+  
+  eq_bias:
+    <<: *base_bias
+    extract_region: &eq_region
+      start_longitude: 150.
+      end_longitude: 270.
+      start_latitude: -5.
+      end_latitude: 5.
+    meridional_statistics:
+      operator: mean
+  
+  base_cycle: &base_cycle
+    <<: *base_bias
+    climate_statistics:
+      operator: mean
+      period: monthly
+    
+  ITCZ_sea_cycle:
+    <<: *base_cycle
+    convert_units:
+      units: mm/day
+  
+  eq_sea_cycle:
+    <<: *base_cycle
+    extract_region: 
+      <<: *eq_region
+
+diagnostics:
+  diagnostic_metrics:
+    description: run preprocessors on variables for bias metrics
+    variables:
+      pr_double:
+        short_name: pr
+        preprocessor: ITCZ_bias
+        mip: Amon
+        additional_datasets:
+          - {dataset: GPCP-SG, project: OBS, type: atmos, tier: 2, mip: Amon, start_year: 1979, end_year: 2018}
+      eq_pr_bias:
+        short_name: pr
+        preprocessor: eq_bias
+        mip: Amon
+        additional_datasets:
+          - {dataset: GPCP-SG, project: OBS, type: atmos, tier: 2, mip: Amon, start_year: 1979, end_year: 2018}
+      eq_sst_bias:
+        short_name: tos
+        preprocessor: eq_bias
+        mip: Omon
+        additional_datasets:
+          - {dataset: HadISST, project: OBS, type: reanaly, tier: 2, mip: Omon}
+      eq_tauu_bias:
+        short_name: tauu
+        preprocessor: eq_bias
+        mip: Amon
+        additional_datasets:
+         - {dataset: ERA-Interim, project: OBS6, type: reanaly, tier: 3, mip: Amon, start_year: 1979, end_year: 2018}
+      pr_double_seacycle:
+        short_name: pr
+        preprocessor: ITCZ_sea_cycle
+        mip: Amon
+        additional_datasets:
+          - {dataset: GPCP-SG, project: OBS, type: atmos, tier: 2, mip: Amon, start_year: 1979, end_year: 2018}
+      eq_pr_seacycle:
+        short_name: pr
+        preprocessor: eq_sea_cycle
+        mip: Amon
+        additional_datasets:
+          - {dataset: GPCP-SG, project: OBS, type: atmos, tier: 2, mip: Amon, start_year: 1979, end_year: 2018}
+      eq_sst_seacycle:
+        short_name: tos
+        preprocessor: eq_sea_cycle
+        mip: Omon
+        additional_datasets:
+          - {dataset: HadISST, project: OBS, type: reanaly, tier: 2, mip: Omon}
+      eq_tauu_seacycle:
+        short_name: tauu
+        preprocessor: eq_sea_cycle
+        mip: Amon
+        additional_datasets:
+         - {dataset: ERA-Interim, project: OBS6, type: reanaly, tier: 3, mip: Amon, start_year: 1979, end_year: 2018}
+    scripts:
+      plot_script:
+        script: /home/189/fc6164/esmValTool/repos/ENSO_recipes/fc/plot_diag1.py
+
+  diag_collect:
+    description: collect metrics
+    variables:
+      pr: #dummy variable to fill recipe req
+        mip: Amon
+    scripts:
+      matrix_collect:
+        script: /home/189/fc6164/esmValTool/repos/ENSO_recipes/fc/matrix.py
+        # above diagnostic name and script name
+        diag_metrics: diagnostic_metrics/plot_script #cfg['work_dir']
+
