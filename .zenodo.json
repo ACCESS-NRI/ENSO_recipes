@@ -1,0 +1,25 @@
+{
+    "creators": [
+        {
+            "orcid": "0000-0003-3891-5444",
+            "affiliation": "ACCESS-NRI",
+            "name": "Beucher, Romain"
+        },
+        {
+            "orcid": "0009-0007-0845-0953",
+            "affiliation": "ACCESS-NRI",
+            "name": "Chun, Felicity"
+        },
+        {
+            "orcid": "0000-0002-5712-6195",
+            "affiliation": "CSIRO",
+            "name": "Sullivan, Arnold"
+        }       
+    ],
+
+    "license": "Apache-2.0",
+
+    "title": "ACCESS ENSO (El Niño-Southern Oscillation) Recipes",
+
+    "keywords": ["Climate", "Science", "Model Evaluation", "ENSO", "CMIP", "ACCESS", "ACCESS-NRI", "NCI"]
+}
