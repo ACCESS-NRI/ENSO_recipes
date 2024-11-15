@@ -99,11 +99,11 @@ def sst_regressed(n34_cube):
     slope = scp.LinReg(n34_dec_ct.values, n34_selected).slope
     return slope
 
-def lifecycle_10(inputs, dtls):
+def lifecycle_10(input_pair, dtls):
     # inputs pairs of model and obs
     ## metric computation - rmse of slopes
-    model = sst_regressed(inputs[0]) #n34_cube
-    obs = sst_regressed(inputs[1])
+    model = sst_regressed(input_pair[1]['tos_lifdur1']) #n34_cube
+    obs = sst_regressed(input_pair[0]['tos_lifdur1'])
     rmse = np.sqrt(np.mean((obs - model) ** 2))
     months = np.arange(1, 73) - 36 #build tuples?
     #save data? slope as cube?
@@ -156,13 +156,11 @@ def main(cfg):
     
     # select twice with project to get obs, iterate through model selection
     for metric, var_preproc in metrics.items(): #if empty or try
-        
-        obs = []
-        models = []
-        for var_prep in var_preproc: #enumerate 1 or 2 length?
-            obs.append(select_metadata(input_data, variable_group=var_prep, project='OBS'))
-            selection = select_metadata(input_data, variable_group=var_prep, project='CMIP6')
-            models.append(sorted_metadata(selection, sort='dataset'))
+        logger.info(f"{metric},{var_preproc}")
+        obs, models = [], []
+        for var_prep in var_preproc: #enumerate 1 or 2 length? if 2 append,
+            obs += select_metadata(input_data, variable_group=var_prep, project='OBS')
+            models += select_metadata(input_data, variable_group=var_prep, project='CMIP6')
 
         # log
         msg = "{} : observation datasets {}, models {}".format(metric, len(obs), pformat(models))
@@ -181,12 +179,12 @@ def main(cfg):
         # dataset name
         
         for dataset in model_ds:
-            logger.info(f"{metric}, preprocessed cubes:{len(dataset)}, dataset:{dataset}")
+            logger.info(f"{metric}, preprocessed cubes:{len(model_ds)}, dataset:{dataset}")
             
             model_datasets = {attributes['variable_group']: iris.load_cube(attributes['filename']) 
                               for attributes in model_ds[dataset]}
             input_pair = [obs_datasets, model_datasets]
-
+            logger.info(pformat(model_datasets))
             # process function for each metric - obs first.. if, else
             if metric == '09pattern':
                 # sort datasetfiles    
