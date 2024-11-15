@@ -1,5 +1,7 @@
 # ACCESS-ENSO-Recipes (El Niño-Southern Oscillation)
 
+[![DOI](https://zenodo.org/badge/855479992.svg)](https://doi.org/10.5281/zenodo.14168217)
+
 ## Overview
 
 The **ACCESS-ENSO-Recipes** package is a collection of Jupyter notebooks designed to reproduce the metrics described in the **CLIVAR 2020 ENSO Metrics Package**. These metrics are based on the methodology outlined by Planton et al. (2021) ([DOI:10.1175/BAMS-D-19-0337.1](https://doi.org/10.1175/BAMS-D-19-0337.1)) and implemented following the instructions provided by Yann Planton.
