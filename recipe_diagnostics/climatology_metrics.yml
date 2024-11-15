@@ -2,8 +2,8 @@
 # 
 ---
 documentation:
-  description: ENSO CLIVAR metrics 
-  title: Reproducing ENSO CLIVAR metrics by Yann Planton
+  description: ENSO CLIVAR metrics, background climatology, by Yann Planton
+  title: Reproducing ENSO CLIVAR metrics - background climatology
   authors:
     - chun_felicity
   maintainer:
@@ -67,7 +67,7 @@ preprocessors:
 
 diagnostics:
   diagnostic_metrics:
-    description: run preprocessors on variables for bias metrics
+    description: run preprocessors on variables for background climatology metrics
     variables:
       pr_double:
         short_name: pr
@@ -119,7 +119,7 @@ diagnostics:
          - {dataset: ERA-Interim, project: OBS6, type: reanaly, tier: 3, mip: Amon, start_year: 1979, end_year: 2018}
     scripts:
       plot_script:
-        script: /home/189/fc6164/esmValTool/repos/ENSO_recipes/fc/plot_diag1.py
+        script: /home/189/fc6164/esmValTool/repos/ENSO_recipes/recipe_diagnostics/climatology_diagnostic1.py
 
   diag_collect:
     description: collect metrics
@@ -128,7 +128,7 @@ diagnostics:
         mip: Amon
     scripts:
       matrix_collect:
-        script: /home/189/fc6164/esmValTool/repos/ENSO_recipes/fc/matrix.py
+        script: /home/189/fc6164/esmValTool/repos/ENSO_recipes/recipe_diagnostics/matrix.py
         # above diagnostic name and script name
         diag_metrics: diagnostic_metrics/plot_script #cfg['work_dir']
 
