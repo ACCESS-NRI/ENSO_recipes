@@ -21,5 +21,9 @@
 
     "title": "ACCESS ENSO (El Niño-Southern Oscillation) Recipes",
 
-    "keywords": ["Climate", "Science", "Model Evaluation", "ENSO", "CMIP", "ACCESS", "ACCESS-NRI", "NCI"]
+    "keywords": ["Climate", "Science", "Model Evaluation", "ENSO", "CMIP", "ACCESS", "ACCESS-NRI", "NCI"],
+
+    "communities": [
+        {"identifier": "access-nri"}
+    ],
 }
