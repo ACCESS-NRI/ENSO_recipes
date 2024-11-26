@@ -37,7 +37,7 @@ def plot_matrix(diag_path):
 
 
 def main(cfg):
-    """Compute sea ice area for each input dataset."""
+    """Read metrics and plot matrix."""
     provenance_record = {
         'caption': "ENSO metrics",
         'authors': [
