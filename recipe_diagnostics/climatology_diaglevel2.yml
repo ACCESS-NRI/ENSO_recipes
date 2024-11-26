@@ -73,6 +73,6 @@ diagnostics:
 
     scripts:
       plot_script:
-        script: /home/189/fc6164/esmValTool/repos/ENSO_recipes/recipe_diagnostics/climatology_diagnosticlevel2.py
+        script: /home/189/fc6164/esmValTool/repos/ENSO_recipes/recipe_diagnostics/diagnostic_scripts/climatology_diagnosticlevel2.py
       
 

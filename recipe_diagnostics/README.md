@@ -1,0 +1,62 @@
+## ACCESS-ENSO-recipes
+
+### Overview
+
+Currently splitting the metrics into the groups: background climatology, basic ENSO characteristics, teleconnections, physical processes.
+Descriptions: https://github.com/CLIVAR-PRP/ENSO_metrics/wiki
+With separate recipe for more diagnostic levels.
+example work_dir with csv for metrics:
+```
+└── work
+    ├── diag_collect
+    │   └── matrix_collect
+    └── diagnostic_metrics
+        └── plot_script
+            └── matrix.csv
+```
+
+### recipes and diagnostics
+
+
+Recipes 
+
+- climatology_metrics.yml
+- climatology_diaglevel2.yml
+
+Diagnostics are stored in diagnostic_scripts/
+
+- climatology_diagnostic1.py: compute metrics for background climatology
+- climatology_diagnosticlevel2.py: plot dive down level 2 for background climatology with maps
+- matrix.py: reads metrics in work_dir from csv file written out in climatology_diagnostic1, use for other groups of metrics
+- enso_diag1metrics.py: metrics for basic ENSO characteristics
+
+
+### User settings in recipe
+
+
+#. Script:
+
+   *Required settings for script*
+
+
+
+### Variables
+
+* pr, tos, tauu (monthly)
+* areacello (fx)
+
+
+### Observations and reformat scripts
+
+
+* HadISST
+
+
+### References
+
+
+### Example plots
+
+
+<p align="center"><img src=".figures/plot_matrix.png" alt="portrait plot" width="60%"/></p>
+
