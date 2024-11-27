@@ -22,6 +22,7 @@ Recipes
 
 - climatology_metrics.yml
 - climatology_diaglevel2.yml
+- enso_metrics.yml
 
 Diagnostics are stored in *diagnostic_scripts/*
 
@@ -53,6 +54,8 @@ Script: **matrix.py**
 
 
 * HadISST
+* ERA-Interim
+* GPCP-SG
 
 
 ### References
@@ -62,4 +65,6 @@ Script: **matrix.py**
 
 
 <p align="center"><img src="figures/plot_matrix.png" alt="portrait plot" width="60%"/></p>
+
+<p align="center"><img src="figures/plot_matrix_enso.png" alt="portrait plot" width="60%"/></p>
 

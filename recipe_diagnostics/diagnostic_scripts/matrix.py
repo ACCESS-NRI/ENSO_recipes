@@ -17,7 +17,7 @@ logger = logging.getLogger(os.path.basename(__file__))
 def plot_matrix(diag_path):
 
     metric_df = pd.read_csv(diag_path, header=None)
-    # TO DO: run normalisation on all these values
+    # run normalisation on all these values
     metric_df[2] = (metric_df[2]-metric_df[2].mean())/metric_df[2].std()
 
     transformls = []
@@ -33,7 +33,6 @@ def plot_matrix(diag_path):
     plt.yticks(range(len(matrixdf.index)), matrixdf.index, wrap=True)
 
     return figure
-
 
 
 def main(cfg):
