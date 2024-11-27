@@ -46,7 +46,7 @@ def plot_level1(input_data, metricval, y_label, title, dtls): #input data is 2 -
         plt.xticks([])
         plt.text(0.75,0.95, f'* {dtls[0]}', color='blue', transform=plt.gca().transAxes)
         plt.text(0.75,0.9, f'* ref: {dtls[1]}', color='black', transform=plt.gca().transAxes)
-        plt.text(0.75, 0.8, f"metric(%): {metricval:.2f}", fontsize=12, ha='center', transform=plt.gca().transAxes,
+        plt.text(0.75, 0.8, f"metric(%): {metricval:.2f}", fontsize=12, transform=plt.gca().transAxes,
                 bbox=dict(facecolor='white', alpha=0.8, edgecolor='none'))
 
     plt.title(title) # metric name

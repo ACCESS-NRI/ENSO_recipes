@@ -8,6 +8,7 @@ import os
 import logging
 
 import pandas as pd
+import numpy as np
 from esmvaltool.diag_scripts.shared import (run_diagnostic, 
                                             save_figure)
 
@@ -31,6 +32,10 @@ def plot_matrix(diag_path):
     plt.colorbar()
     plt.xticks(range(len(matrixdf.columns)), matrixdf.columns, rotation=45, ha='right')
     plt.yticks(range(len(matrixdf.index)), matrixdf.index, wrap=True)
+    plt.xticks(np.arange(matrixdf.shape[1] + 1) - 0.5, minor=True)
+    plt.yticks(np.arange(matrixdf.shape[0] + 1) - 0.5, minor=True)
+    plt.tick_params(which="both", bottom=False, left=False)
+    plt.grid(which="minor", color="black", linestyle="-", linewidth=0.5)
 
     return figure
 
@@ -53,7 +58,7 @@ def main(cfg):
     
     figure = plot_matrix(diag_path)
 
-    save_figure('plot_matrix', provenance_record, cfg, figure=figure)
+    save_figure('plot_matrix', provenance_record, cfg, figure=figure, bbox_inches='tight')
 
 if __name__ == '__main__':
 
