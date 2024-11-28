@@ -36,23 +36,23 @@ def plot_level1(input_data, metricval, y_label, title, dtls): #input data is 2 -
         # model first 
         plt.plot(*input_data[0], label=dtls[0])
         plt.plot(*input_data[1], label=f'ref: {dtls[1]}', color='black')
-        val_type = 'RMSE'
+        plt.text(0.5, 0.95, f"RMSE: {metricval:.2f}", fontsize=12, ha='center', transform=plt.gca().transAxes,
+                bbox=dict(facecolor='white', alpha=0.8, edgecolor='none'))
+
     else:
         plt.scatter(range(len(input_data)), input_data, c=['black','blue'], marker='D')
         # obs first
         plt.xlim(-0.5,2)#range(-1,3,1)) #['model','obs']
         plt.xticks([])
-        plt.text(0.75,0.85, f'* {dtls[0]}', color='blue',transform=plt.gca().transAxes)
-        plt.text(0.75,0.8, f'* ref: {dtls[1]}', color='black',transform=plt.gca().transAxes)
-        val_type = 'metric(%)'
+        plt.text(0.75,0.95, f'* {dtls[0]}', color='blue', transform=plt.gca().transAxes)
+        plt.text(0.75,0.9, f'* ref: {dtls[1]}', color='black', transform=plt.gca().transAxes)
+        plt.text(0.75, 0.8, f"metric(%): {metricval:.2f}", fontsize=12, transform=plt.gca().transAxes,
+                bbox=dict(facecolor='white', alpha=0.8, edgecolor='none'))
 
     plt.title(title) # metric name
     plt.legend()
     plt.grid(linestyle='--')
     plt.ylabel(y_label) #param
-    # metric type: RMSE or %
-    plt.text(0.5, 0.95, f"{val_type}: {metricval:.2f}", fontsize=12, ha='center', transform=plt.gca().transAxes,
-                bbox=dict(facecolor='white', alpha=0.8, edgecolor='none'))
     
     if title == 'ENSO pattern': # if array, not scatter
         plt.gca().xaxis.set_major_formatter(plt.FuncFormatter(format_longitude))
@@ -67,7 +67,7 @@ def plot_level1(input_data, metricval, y_label, title, dtls): #input data is 2 -
 
     return figure
 
-def lin_regress(cube_ssta, cube_nino34): #1d 
+def lin_regress(cube_ssta, cube_nino34): #1d pattern
     slope_ls = []
     for lon_slice in cube_ssta.slices(['time']): 
         res = linregress(cube_nino34.data, lon_slice.data)
@@ -75,23 +75,7 @@ def lin_regress(cube_ssta, cube_nino34): #1d
 
     return cube_ssta.coord('longitude').points, slope_ls
 
-def pattern_09(input_pair, dt_ls): #['tos_patdiv1':, 'tos_pat2':] input_pair
-
-    # obs first
-    mod_ssta = input_pair[1]['tos_pat2']
-    mod_nino34 = input_pair[1]['tos_patdiv1']
-    reg_mod = lin_regress(mod_ssta, mod_nino34)
-    reg_obs = lin_regress(input_pair[0]['tos_pat2'], input_pair[0]['tos_patdiv1'])
-
-    rmse = np.sqrt(np.mean((np.array(reg_obs[1]) - np.array(reg_mod[1])) ** 2))
-    #save data? reg_mod as cube?
-    
-    # plot functions? title
-    fig = plot_level1([reg_mod,reg_obs], rmse, 'reg(ENSO SSTA, SSTA)', 'ENSO pattern', dt_ls)
-
-    return rmse, fig
-
-def sst_regressed(n34_cube): #dict
+def sst_regressed(n34_cube): #for lifecycle
     # params cubes, 
     n34_dec = extract_month(n34_cube, 12)
     n34_dec = xr.DataArray.from_iris(n34_dec)
@@ -115,69 +99,83 @@ def sst_regressed(n34_cube): #dict
     slope = scp.LinReg(n34_dec_ct.values, n34_selected).slope
     return slope
 
-def lifecycle_10(input_pair, dtls): #variable_group
-    # inputs pairs of model and obs
-    ## metric computation - rmse of slopes
-    logger.info(input_pair[1]['tos_lifdur1'])
-    model = sst_regressed(input_pair[1]['tos_lifdur1']) #n34_cube
-    obs = sst_regressed(input_pair[0]['tos_lifdur1'])
-    rmse = np.sqrt(np.mean((obs - model) ** 2))
-    months = np.arange(1, 73) - 36 #build tuples?
-    #save data? slope as cube?
+def compute_enso_metrics(input_pair, dt_ls, var_group, metric): #['tos_patdiv1':, 'tos_pat2':] 
 
-    # plot function #need xticks, labels as dict/ls
-    fig = plot_level1([ (months,model),(months,obs)], rmse, 'Degree C / C','ENSO lifecycle', dtls)
-    return rmse, fig
+    # input_pair: obs first
+    if metric == '09pattern':
+        model_ssta = input_pair[1][var_group[1]]
+        model_nino34 = input_pair[1][var_group[0]]
+        reg_mod = lin_regress(model_ssta, model_nino34)
+        reg_obs = lin_regress(input_pair[0][var_group[1]], input_pair[0][var_group[0]])
 
-def amplitude_11(input_pair, dtls, var_group):
-    metric = [input_pair[1][var_group].data.item(),input_pair[0][var_group].data.item()]
-    val = compute(metric[1],metric[0])
-    #plt.scatter(range(len(metric)), metric, c=['blue','black'], marker='D')
-    fig = plot_level1(metric, val, 'SSTA std (°C)','ENSO amplitude', dtls)
-    return val, fig
-def seasonality_12(input_pair, dtls, var_group):
-    # cubes, season, climate
-    metric = []
-    for ds in input_pair: #obs 0, mod 1
-        preproc = {}
-        for seas in ['NDJ','MAM']:
-            cube = extract_season(ds[var_group], seas)
-            cube = climate_statistics(cube, operator="std_dev", period="full")
-            preproc[seas] = cube.data
+        val = np.sqrt(np.mean((np.array(reg_obs[1]) - np.array(reg_mod[1])) ** 2))
+        #save data? reg_mod as cube?
+        # plot functions? ylabel, title, data labels
+        fig = plot_level1([reg_mod,reg_obs], val, 'reg(ENSO SSTA, SSTA)', 'ENSO pattern', dt_ls)
+    
+    elif metric =='10lifecycle':
+        model = sst_regressed(input_pair[1][var_group[0]]) #n34_cube
+        obs = sst_regressed(input_pair[0][var_group[0]])
+        val = np.sqrt(np.mean((obs - model) ** 2))
+        months = np.arange(1, 73) - 36 #build tuples?
+        # plot function #need xticks, labels as dict/ls
+        fig = plot_level1([ (months,model),(months,obs)], val, 'Degree C / C', 'ENSO lifecycle', dt_ls)
+    
+    elif metric =='11amplitude':
+        data_values = [input_pair[1][var_group[0]].data.item(),input_pair[0][var_group[0]].data.item()]
+        val = compute(data_values[1], data_values[0])
+        #plt.scatter(range(len(metric)), metric, c=['blue','black'], marker='D')
+        fig = plot_level1(data_values, val, 'SSTA std (°C)', 'ENSO amplitude', dt_ls)
 
-        ds_val = preproc['NDJ']/preproc['MAM']
-        metric.append(ds_val)
+    elif metric =='12seasonality':
+        data_values = []
+        for ds in input_pair: #obs 0, mod 1
+            preproc = {}
+            for seas in ['NDJ','MAM']:
+                cube = extract_season(ds[var_group[0]], seas)
+                cube = climate_statistics(cube, operator="std_dev", period="full")
+                preproc[seas] = cube.data
 
-    val = compute(metric[1],metric[0])
-    #plt.scatter(range(len(metric)), metric, c=['blue','black'], marker='D')
-    fig = plot_level1(metric, val, 'SSTA std (NDJ/MAM)(°C/°C)','ENSO seasonality', dtls)
-    return val, fig
-def asymmetry_13(input_pair, dtls, var_group):
-    model_skew = skew(input_pair[1][var_group].data, axis=0)
-    obs_skew = skew(input_pair[0][var_group].data, axis=0)
-    metric = [model_skew,obs_skew]
+            data_values.append(preproc['NDJ']/preproc['MAM'])
 
-    val = compute(metric[1],metric[0])
-    #plt.scatter(range(len(metric)), metric, c=['blue','black'], marker='D')
-    fig = plot_level1(metric, val, 'SSTA skewness(°C)','ENSO skewness', dtls)
-    return val, fig
-def duration_14(input_pair, dtls, var_group):
-    # inputs pairs of model and obs
+        val = compute(data_values[1], data_values[0])
+        fig = plot_level1(data_values, val, 'SSTA std (NDJ/MAM)(°C/°C)','ENSO seasonality', dt_ls)
 
-    model = sst_regressed(input_pair[1][var_group])
-    obs = sst_regressed(input_pair[0][var_group])
+    elif metric =='13asymmetry':
+        model_skew = skew(input_pair[1][var_group[0]].data, axis=0)
+        obs_skew = skew(input_pair[0][var_group[0]].data, axis=0)
+        data_values = [model_skew, obs_skew]
 
-    months = np.arange(1, 73) - 36
-    counts = []
-    # Calculate the number of months where slope > 0.25 in the range -20 to 20
-    within_range = (months >= -30) & (months <= 30)
-    for slopes in [model, obs]:
-        slope_above_025 = slopes[within_range] > 0.25
-        counts.append(np.sum(slope_above_025))
-    val = compute(counts[1],counts[0])
+        val = compute(data_values[1], data_values[0])
+        fig = plot_level1(data_values, val, 'SSTA skewness(°C)','ENSO skewness', dt_ls)
 
-    fig = plot_level1(counts, val, 'Duration (reg > 0.25) (months)','ENSO duration', dtls)
-    return val, fig
+    elif metric =='14duration':
+        model = sst_regressed(input_pair[1][var_group[0]])
+        obs = sst_regressed(input_pair[0][var_group[0]])
+
+        months = np.arange(1, 73) - 36
+        counts = []
+        # Calculate the number of months where slope > 0.25 in the range -20 to 20
+        within_range = (months >= -30) & (months <= 30)
+        for slopes in [model, obs]:
+            slope_above_025 = slopes[within_range] > 0.25
+            counts.append(np.sum(slope_above_025))
+        val = compute(counts[1], counts[0])
+
+        fig = plot_level1(counts, val, 'Duration (reg > 0.25) (months)','ENSO duration', dt_ls)
+    elif metric =='15diversity':
+        data_values = []
+        for ds in input_pair: #obs first
+            events = enso_events(ds[var_group[0]])
+            results_lon = diversity(ds[var_group[1]], events)
+            results_lon['enso'] = results_lon['nino'] + results_lon['nina']
+            logger.info(f"{dt_ls}, enso IQR: {iqr(results_lon['enso'])}") 
+            data_values.append(iqr(results_lon['enso']))
+
+        val = compute(data_values[1], data_values[0]) 
+        fig = plot_level1(data_values, val, 'IQR of min/max SSTA(°long)','ENSO diversity', dt_ls)
+
+    return val, fig 
 
 def mask_to_years(events):    # build time with mask
     maskedTime = np.ma.masked_array(events.coord('time').points, mask=events.data.mask)
@@ -204,19 +202,6 @@ def diversity(ssta_cube, events_dict): #2 masks/events list
 
         res_lon[enso] = loc_ls
     return res_lon # return data to plot 
-def diversity_15(input_pair, dtls, var_groupls):
-    metric = []
-    for ds in input_pair: #obs first
-        events = enso_events(ds[var_groupls[0]])
-
-        results_lon = diversity(ds[var_groupls[1]], events)
-        results_lon['enso'] = results_lon['nino'] + results_lon['nina']
-        logger.info(f"{dtls}, enso IQR: {iqr(results_lon['enso'])}") 
-        metric.append(iqr(results_lon['enso']))
-
-    val = compute(metric[1],metric[0]) 
-    fig = plot_level1(metric, val, 'IQR of min/max SSTA(°long)','ENSO diversity', dtls)    
-    return val, fig
 
 def iqr(data):
     q3, q1 = np.percentile(data, [75 ,25])
@@ -299,21 +284,7 @@ def main(cfg):
             logger.info(pformat(model_datasets))
             # process function for each metric - obs first.. if, else
             ### make one function, with the switches - same params
-            if metric == '09pattern':
-                # sort datasetfiles    
-                value, fig = pattern_09(input_pair, [dataset, obs[0]['dataset']])
-            elif metric =='10lifecycle':
-                value, fig = lifecycle_10(input_pair, [dataset, obs[0]['dataset']])
-            elif metric =='11amplitude':
-                value,fig = amplitude_11(input_pair, [dataset, obs[0]['dataset']], var_preproc[0])  
-            elif metric =='12seasonality':
-                value,fig = seasonality_12(input_pair, [dataset, obs[0]['dataset']], var_preproc[0]) 
-            elif metric =='13asymmetry':
-                value,fig = asymmetry_13(input_pair, [dataset, obs[0]['dataset']], var_preproc[0])
-            elif metric =='14duration':
-                value,fig = duration_14(input_pair, [dataset, obs[0]['dataset']], var_preproc[0])
-            elif metric =='15diversity':
-                value,fig = diversity_15(input_pair, [dataset, obs[0]['dataset']], var_preproc)
+            value, fig = compute_enso_metrics(input_pair, [dataset, obs[0]['dataset']], var_preproc, metric)
 
             # save metric for each pair, check not none
             if value:
